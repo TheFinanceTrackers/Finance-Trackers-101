@@ -222,7 +222,7 @@ def generate_insights(start_date=None, end_date=None):
     prompt = f"Here is the user's weekly spending breakdown:\n{trend_text}\nGive a short trend analysis with recommendations."
 
     headers = {
-        "Authorization": "Bearer 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",  # Use env var in prod
+        "Authorization": "Bearer sk- -- --- ",  # Use env var in prod # Open router API key
         "Content-Type": "application/json"
     }
 
