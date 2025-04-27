@@ -15,6 +15,7 @@ amounts = {
     'Entertainment': (50, 400),
     'Healthcare': (40, 250),
     'Shopping': (30, 200),
+    'Groceries': (30, 200),
     'Others': (10, 100)
 }
 

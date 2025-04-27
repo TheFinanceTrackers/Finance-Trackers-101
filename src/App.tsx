@@ -6,6 +6,13 @@ import {  createContext, useContext, useState, useEffect } from 'react';
 import Graphs from "./Graphs";
 import { Sun, Moon } from 'lucide-react';
 import { ThemeProvider } from "./ThemeContext";
+import SignIn from './SignIn';
+import SignUp from './SignUp'; 
+
+import UserProfile from './UserProfile';
+import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
+
 
 function DarkModeToggle({ darkMode, setDarkMode }: { darkMode: boolean; setDarkMode: React.Dispatch<React.SetStateAction<boolean>> }) {
   return (
@@ -60,16 +67,44 @@ function HomePage({ darkMode, setDarkMode }: { darkMode: boolean; setDarkMode: R
             {/* Dark Mode Toggle */}
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
 
-            {/* Buttons (Sign In / Sign Up) */}
+            {/* Conditional Rendering for SignIn, SignUp, UserProfile, Logout */}
             <div className="flex items-center space-x-4">
-              <button className="flex items-center px-4 py-2 rounded-full text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                <LogIn className="h-5 w-5 mr-1" />
-                Sign In
-              </button>
-              <button className="flex items-center px-4 py-2 rounded-full bg-orange-500 dark:bg-yellow-500 text-white hover:bg-orange-600 dark:hover:bg-yellow-600">
-                <UserPlus className="h-5 w-5 mr-1" />
-                Sign Up
-              </button>
+              {localStorage.getItem('user_id') ? (
+                <>
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="flex items-center px-4 py-2 rounded-full text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    User Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('user_id');
+                      navigate('/signin');
+                    }}
+                    className="flex items-center px-4 py-2 rounded-full text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-100"
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/signin')}
+                    className="flex items-center px-4 py-2 rounded-full text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    <LogIn className="h-5 w-5 mr-1" />
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => navigate('/signup')}
+                    className="flex items-center px-4 py-2 rounded-full bg-orange-500 dark:bg-yellow-500 text-white hover:bg-orange-600 dark:hover:bg-yellow-600"
+                  >
+                    <UserPlus className="h-5 w-5 mr-1" />
+                    Sign Up
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -166,11 +201,13 @@ function HomePage({ darkMode, setDarkMode }: { darkMode: boolean; setDarkMode: R
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
+      <footer className="bg-gradient-to-r from-blue-600 via-pink-700 to-yellow-500 bg-opacity-90 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>© 2024 Personal Finance Management Team S4 DIT Pimpri. All rights reserved.</p>
+            <p>© 2024 Personal Finance Management Team S4 DIT Pimpri. All rights reserved.</p>
         </div>
       </footer>
+
+
     </div>
   );
 }
@@ -196,6 +233,18 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage darkMode={darkMode} setDarkMode={setDarkMode} />} />
           <Route path="/budget" element={<BudgetPage />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/profile" element={<UserProfile />} />
+
+          <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
         </Routes>
       </Router>
     </ThemeProvider>

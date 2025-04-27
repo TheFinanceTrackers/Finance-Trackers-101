@@ -8,6 +8,7 @@ import requests
 import re
 from subprocess import run
 import time
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # Allow all routes and credentials
@@ -27,9 +28,129 @@ class Transaction(db.Model):
     category = db.Column(db.String(50), nullable=False)
     date = db.Column(db.String(50), nullable=False)
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    image_url = db.Column(db.String(200), nullable=True)
+    skills = db.Column(db.String(200), nullable=True)
+
+    def __repr__(self):
+        return f'<User {self.name}>'
+    
+class CategoryAllocation(db.Model):
+    __tablename__ = 'category_allocations'
+
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(255), nullable=False)
+    monthly_allocation = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+
+
+# POST Method - Add/Update Allocation
+@app.route("/category-allocations", methods=["POST"])
+def add_category_allocation():
+    try:
+        data = request.get_json()
+        category = data.get('category')
+        monthly_allocation = data.get('monthly_allocation')
+        # Insert or update the allocation in the database
+        allocation = CategoryAllocation.query.filter_by(category=category).first()
+
+        if allocation:
+            # Update existing record
+            allocation.monthly_allocation = monthly_allocation
+        else:
+            # Create a new record
+            allocation = CategoryAllocation(
+                category=category,
+                monthly_allocation=monthly_allocation,
+            )
+            db.session.add(allocation)
+
+        db.session.commit()
+        return jsonify({"message": "Category allocation updated successfully"}), 200
+
+    except Exception as e:
+        print(f"Error in adding/updating allocation: {e}")
+        return jsonify({"message": "Error processing the request"}), 400
+
+# GET Method - Retrieve Allocations
+@app.route("/category-allocations", methods=["GET"])
+def get_category_allocations():
+    try:
+        # Retrieve all category allocations from the database
+        allocations = CategoryAllocation.query.all()
+        
+        # Prepare the response with the allocation data
+        allocations_data = [
+            {
+                "category": allocation.category,
+                "monthly_allocation": allocation.monthly_allocation
+            } for allocation in allocations
+        ]
+        
+        return jsonify(allocations_data), 200
+    
+    except Exception as e:
+        print(f"Error in retrieving category allocations: {e}")
+        return jsonify({"message": "Error retrieving data"}), 400
+
 # Create database tables
 with app.app_context():
     db.create_all()
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    # Check if user already exists
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'User already exists'}), 400
+
+    new_user = User(email=email, password=password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': 'User registered successfully'}), 201
+
+@app.route('/signin', methods=['POST'])
+def signin():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    user = User.query.filter_by(email=email, password=password).first()
+    if user:
+        return jsonify({'message': 'Login successful', 'user_id': user.id}), 200
+    else:
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+@app.route('/api/profile', methods=['GET'])
+def get_user_profile():
+    user_id = request.args.get('user_id')
+
+    if not user_id:
+        return jsonify({'error': 'User ID is required'}), 400
+
+    user = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Split skills into a list
+    skills_list = user.skills.split(',') if user.skills else []
+
+    return jsonify({
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+        'image_url': user.image_url,
+        'skills': skills_list
+    })
 
 @app.route('/transactions', methods=['GET'])
 def get_transactions():
@@ -166,6 +287,17 @@ def latest_plot(plot_type):
 
     return jsonify({"error": "No plot found"}), 404
 
+@app.route("/debug_allocations")
+def debug_allocations():
+    allocations = CategoryAllocation.query.all()
+    return jsonify([{
+        "id": a.id,
+        "category": a.category,
+        "percentage": a.percentage,
+        "user_id": a.user_id
+    } for a in allocations])
+
+
 @app.route("/insights", methods=["GET"])
 @app.route("/insights", methods=["POST"])
 def fetch_insight():
@@ -222,17 +354,18 @@ def generate_insights(start_date=None, end_date=None):
     prompt = f"Here is the user's weekly spending breakdown:\n{trend_text}\nGive a short trend analysis with recommendations."
 
     headers = {
-        "Authorization": "Bearer sk- -- --- ",  # Use env var in prod # Open router API key
+        "Authorization": "Bearer sk- -- --",  # Use env var in prod
         "Content-Type": "application/json"
     }
 
     payload = {
-        "model": "mistralai/mistral-7b-instruct",
-        "messages": [
-            {"role": "system", "content": "You are a financial assistant."},
-            {"role": "user", "content": prompt}
-        ]
-    }
+    "model": "deepseek/deepseek-r1-distill-qwen-32b:free",
+    "messages": [
+        {"role": "system", "content": "You are a financial assistant."},
+        {"role": "user", "content": prompt}
+    ]
+}
+
 
     try:
         res = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
