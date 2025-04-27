@@ -24,62 +24,68 @@ def prepare_line_chart_data(df):
 
 # --- Line Chart Visualization ---
 def create_chart(df_pivot):
-    """Create and plot a cartoon-style line chart."""
+    """Create and plot a cartoon-style line chart with a dark theme."""
     
     colors = {
-        "Housing": "#4285F4",  # Blue
-        "Food": "#34A853",  # Green
-        "Transportation": "#FBBC05",  # Yellow
-        "Entertainment": "#A142F4",  # Purple
-        "Healthcare": "#EA4335",  # Red
-        "Shopping": "#F06292",  # Pink
-        "Others": "#808080"  # Gray
+        "Housing": "#4285F4",       # Blue
+        "Food": "#34A853",          # Green
+        "Transportation": "#FBBC05",# Yellow
+        "Entertainment": "#A142F4", # Purple
+        "Healthcare": "#EA4335",    # Red
+        "Shopping": "#F06292",      # Pink
+        "Groceries": "#00ccff",     # Cyan
+        "Others": "#808080"         # Gray
     }
     
     data = [
         go.Scatter(
             x=df_pivot.index,
             y=df_pivot[category],
-            mode="lines",
+            mode="lines+markers",
             name=category,
-            line=dict(color=colors.get(category, "#A9A9A9"), width=3),  # Line styling
-            marker=dict(size=8, line=dict(color='black', width=2)),  # Cartoonish marker
-            hovertemplate=f"Category: {category}<br>Date: %{{x}}<br>Amount: %{{y}}<br><extra></extra>"
+            line=dict(color=colors.get(category, "#A9A9A9"), width=3),
+            marker=dict(size=6, line=dict(color='black', width=1)),
+            hovertemplate=f"Category: {category}<br>Date: %{{x}}<br>Amount: %{{y}}<extra></extra>"
         )
         for category in df_pivot.columns
     ]
 
     layout = go.Layout(
         title="Spending Trends Over Time",
-        xaxis_title="Date",
-        yaxis_title="Amount Spent",
-        xaxis=dict(
-            tickangle=45,
-            showgrid=True,
-            tickformat="%b %d",
-        ),
-        yaxis=dict(
-            showgrid=True,
-            zeroline=True,
-        ),
-        plot_bgcolor="rgba(0, 0, 0, 0)",
-        paper_bgcolor="rgba(255, 255, 255, 1)",
         font=dict(
             family="Comic Sans MS, sans-serif",
             size=14,
-            color="black"
+            color="white"
         ),
+        xaxis=dict(
+            title="Date",
+            tickangle=45,
+            showgrid=True,
+            gridcolor="gray",
+            color="white"
+        ),
+        yaxis=dict(
+            title="Amount Spent",
+            showgrid=True,
+            gridcolor="gray",
+            zeroline=True,
+            color="white"
+        ),
+        plot_bgcolor="black",
+        paper_bgcolor="black",
         legend=dict(
             title="Categories",
             orientation="h",
             x=0.5,
             xanchor="center",
-            y=-0.2
+            y=-0.25,
+            font=dict(color="white")
         )
     )
 
     fig = go.Figure(data=data, layout=layout)
     return fig
+
 
 # --- Main Execution ---
 if __name__ == "__main__":
