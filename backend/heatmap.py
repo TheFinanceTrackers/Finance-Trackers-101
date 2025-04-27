@@ -54,7 +54,12 @@ def create_heatmap(df_pivot):
         x=df_pivot.columns,
         y=df_pivot.index.strftime('%b %d'),  # Format date
         colorscale="Viridis",
-        colorbar=dict(title="Amount Spent"),
+        colorbar=dict(
+            title="Amount Spent",
+            tickcolor="white",
+            titlefont=dict(color="white"),
+            tickfont=dict(color="white")
+        ),
         hovertemplate=(
             "<b>Category:</b> %{x}<br>"
             "<b>Date:</b> %{y}<br>"
@@ -64,15 +69,26 @@ def create_heatmap(df_pivot):
 
     layout = go.Layout(
         title="Spending Heatmap Over Time",
-        xaxis=dict(title="Categories", tickangle=-45),
-        yaxis=dict(title="Date"),
-        plot_bgcolor="rgba(255, 255, 255, 1)",
-        paper_bgcolor="rgba(255, 255, 255, 1)",
         font=dict(
-            family="Arial, sans-serif",
+            family="Comic Sans MS, sans-serif",
             size=14,
-            color="black"
-        )
+            color="white"
+        ),
+        xaxis=dict(
+            title="Categories",
+            tickangle=-45,
+            color="white",
+            showgrid=True,
+            gridcolor="gray"
+        ),
+        yaxis=dict(
+            title="Date",
+            color="white",
+            showgrid=True,
+            gridcolor="gray"
+        ),
+        plot_bgcolor="black",       # Chart area background
+        paper_bgcolor="black",      # Whole page background
     )
 
     fig = go.Figure(data=[heatmap], layout=layout)
