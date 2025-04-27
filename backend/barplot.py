@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.offline as pyo
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # --- Database Connection ---
 def connect_to_db(db_file):
@@ -23,75 +23,97 @@ def prepare_data_for_plot(df):
 
 # --- Plotly Visualization ---
 def create_bar_chart(df_pivot):
-    colors = {
-        "Housing": "#4173CD",       # Blue
-        "Food": "#28A745",          # Green
-        "Transportation": "#F0C419", # Yellow
-        "Entertainment": "#A95BC0", # Purple
-        "Healthcare": "#DC3545",    # Red
-        "Shopping": "#E94E77",      # Pink
-        "Others": "#808080"         # Gray
+    cyberpunk_colors = {
+        "Housing": "#0ff0fc",        # Neon Cyan
+        "Food": "#ff00cc",           # Hot Pink
+        "Transportation": "#a8f7fc",# Electric Blue
+        "Entertainment": "#f5b700", # Neon Yellow
+        "Healthcare": "#be0aff",     # Vivid Purple
+        "Shopping": "#fe53bb",       # Pink Magenta
+        "Groceries": "#a0ccfb",       # Pink Magenta
+        "Others": "#39ff14",         # Bright Green
     }
-    
+
     data = []
     for category in df_pivot.columns:
         data.append(
             go.Bar(
-                x=df_pivot.index, 
+                x=df_pivot.index,
                 y=df_pivot[category],
                 name=category,
                 marker=dict(
-                    color=colors.get(category, "#A9A9A9"),
-                    line=dict(width=3, color="black")  # Thick black border
+                    color=cyberpunk_colors.get(category, "#FFFFFF"),
+                    line=dict(width=1.5, color="rgba(255,255,255,0.3)")
                 ),
+                opacity=0.85,
                 hovertemplate=(
                     f"<b>{category}</b><br>"
                     "Date: %{x}<br>"
-                    "Amount: %{y}<extra></extra>"
+                    "Amount: ₹%{y}<extra></extra>"
                 )
             )
         )
-    
+
     layout = go.Layout(
-        title="Spending Categories Over Time",
+        title=dict(
+            text="Spending Dashboard",
+            font=dict(
+                family="Orbitron, sans-serif",
+                size=26,
+                color="#00ffff"
+            ),
+            x=0.5,
+            xanchor="center"
+        ),
         barmode="stack",
         xaxis=dict(
             tickangle=45,
-            showgrid=True,
-            tickformat="%b %d",
+            showgrid=False,
             zeroline=False,
-            linecolor='rgba(0,0,0,0)'  # Remove axis border
+            title=dict(
+                text="Date",
+                font=dict(size=18, color="#ff00cc")
+            ),
+            tickfont=dict(size=12, color="#FFFFFF"),
+            linecolor="#555"
         ),
         yaxis=dict(
             showgrid=True,
-            zeroline=True,
-            gridcolor="lightgray",  # Soft grid lines
-            zerolinecolor="gray"
+            gridcolor="rgba(255,255,255,0.1)",
+            zerolinecolor="#ff00cc",
+            title=dict(
+                text="Amount Spent",
+                font=dict(size=18, color="#ff00cc")
+            ),
+            tickfont=dict(size=12, color="#FFFFFF")
         ),
-        plot_bgcolor="rgba(255, 255, 255, 1)",
-        paper_bgcolor="rgba(255, 255, 255, 1)",
+        plot_bgcolor="rgba(0,0,0,0.85)",
+        paper_bgcolor="rgba(0,0,0,1)",
         font=dict(
-            family="Comic Sans MS, sans-serif",  # Cartoonish font
+            family="Orbitron, sans-serif",
             size=14,
-            color="black"
+            color="#FFFFFF"
         ),
         legend=dict(
-            title="Categories",
+            title=dict(text="Categories", font=dict(color="#39ff14")),
             orientation="h",
             x=0.5,
             xanchor="center",
-            y=-0.2
-        )
+            y=-0.3,
+            font=dict(color="#FFFFFF")
+        ),
+        margin=dict(l=60, r=30, t=80, b=90),
+        transition=dict(duration=500, easing="cubic-in-out")
     )
-    
+
     fig = go.Figure(data=data, layout=layout)
     return fig
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    db_connection = connect_to_db("database.sqlite")
-    df = fetch_data_from_db(db_connection)
-    db_connection.close()
+    conn = connect_to_db("database.sqlite")
+    df = fetch_data_from_db(conn)
+    conn.close()
     df_pivot = prepare_data_for_plot(df)
     fig = create_bar_chart(df_pivot)
     pyo.plot(fig, filename="barplot.html", auto_open=False)
