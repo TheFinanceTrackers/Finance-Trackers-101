@@ -23,4 +23,4 @@ with
   
 and this line  
 `"model": "deepseek/deepseek-r1-distill-qwen-32b:free",`  
-with the any free LLM model of your choice. I, for instance, chose the Deepseek R1 Distill Qwen 32 (Free) model. It can be Mistral AI, Gemini, etc.
+with the any free LLM model of your choice. I, for instance, chose the Deepseek R1 Distill Qwen 32 B (Free) model. It can be Mistral AI, Gemini, etc.
